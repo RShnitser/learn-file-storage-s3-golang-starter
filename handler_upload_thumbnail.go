@@ -6,8 +6,9 @@ import (
 	"io"
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/auth"
 	"github.com/google/uuid"
-	//"encoding/base64"
+	"encoding/base64"
 	"os"
+	"crypto/rand"
 )
 
 func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Request) {
@@ -74,6 +75,15 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		respondWithError(w, http.StatusUnauthorized, "Not authorized to update this video", nil)
 		return
 	}
+
+	b := make([]byte, 32)
+	_, err = rand.Read(b)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create random bytes", err)
+		return
+	}
+
+	enc := base64.RawURLEncoding.EncodeToString(b)
 
 	url := cfg.getAssetURL(assetPath)
 	video.ThumbnailURL = &url
