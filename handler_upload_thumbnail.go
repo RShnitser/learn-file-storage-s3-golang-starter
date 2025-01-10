@@ -52,7 +52,16 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	assetPath := getAssetPath(videoID, mediaType)
+	b := make([]byte, 32)
+	_, err = rand.Read(b)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create random bytes", err)
+		return
+	}
+	enc := base64.RawURLEncoding.EncodeToString(b)
+	fmt.Println(enc)
+
+	assetPath := getAssetPath(enc, mediaType)
 	assetDiskPath := cfg.getAssetDiskPath(assetPath)
 
 	dst, err := os.Create(assetDiskPath)
@@ -75,15 +84,6 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		respondWithError(w, http.StatusUnauthorized, "Not authorized to update this video", nil)
 		return
 	}
-
-	b := make([]byte, 32)
-	_, err = rand.Read(b)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't create random bytes", err)
-		return
-	}
-
-	enc := base64.RawURLEncoding.EncodeToString(b)
 
 	url := cfg.getAssetURL(assetPath)
 	video.ThumbnailURL = &url
