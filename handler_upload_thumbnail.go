@@ -52,16 +52,7 @@ func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	b := make([]byte, 32)
-	_, err = rand.Read(b)
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't create random bytes", err)
-		return
-	}
-	enc := base64.RawURLEncoding.EncodeToString(b)
-	fmt.Println(enc)
-
-	assetPath := getAssetPath(enc, mediaType)
+	assetPath := getAssetPath(mediaType)
 	assetDiskPath := cfg.getAssetDiskPath(assetPath)
 
 	dst, err := os.Create(assetDiskPath)

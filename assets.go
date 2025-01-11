@@ -17,9 +17,15 @@ func (cfg apiConfig) ensureAssetsDir() error {
 }
 
 
-func getAssetPath(rand string, mediaType string) string {
+func getAssetPath(mediaType string) string {
+	b := make([]byte, 32)
+	_, err = rand.Read(b)
+	if err != nil {
+		panic("Couldn't create random bytes")
+	}
+	id := base64.RawURLEncoding.EncodeToString(b)
 	ext := mediaTypeToExt(mediaType)
-	return fmt.Sprintf("%s%s", rand, ext)
+	return fmt.Sprintf("%s%s", id, ext)
 }
 
 func (cfg apiConfig) getAssetDiskPath(assetPath string) string {
