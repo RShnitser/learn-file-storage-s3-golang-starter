@@ -5,7 +5,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
+	"encoding/base64"
+	"crypto/rand"
 	//"github.com/google/uuid"
 )
 
@@ -19,7 +20,7 @@ func (cfg apiConfig) ensureAssetsDir() error {
 
 func getAssetPath(mediaType string) string {
 	b := make([]byte, 32)
-	_, err = rand.Read(b)
+	_, err := rand.Read(b)
 	if err != nil {
 		panic("Couldn't create random bytes")
 	}

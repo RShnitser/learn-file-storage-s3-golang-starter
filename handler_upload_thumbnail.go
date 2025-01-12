@@ -6,9 +6,8 @@ import (
 	"io"
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/auth"
 	"github.com/google/uuid"
-	"encoding/base64"
 	"os"
-	"crypto/rand"
+	
 )
 
 func (cfg *apiConfig) handlerUploadThumbnail(w http.ResponseWriter, r *http.Request) {
