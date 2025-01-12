@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"context"
 
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/database"
 	"github.com/google/uuid"
@@ -12,7 +13,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	//"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/config"
 )
 
 type apiConfig struct {
@@ -88,6 +89,13 @@ func main() {
 		log.Fatal("PORT environment variable is not set")
 	}
 
+	s3cfg, err := config.LoadDefaultConfig( context.TODO())
+	if err != nil {
+		log.Fatalf("failed loading config, %v", err)
+	}
+
+	s3Client := s3.NewFromConfig(s3cfg)
+
 	cfg := apiConfig{
 		db:               db,
 		jwtSecret:        jwtSecret,
@@ -98,6 +106,7 @@ func main() {
 		s3Region:         s3Region,
 		s3CfDistribution: s3CfDistribution,
 		port:             port,
+		s3Client:         s3Client,
 	}
 
 	err = cfg.ensureAssetsDir()
