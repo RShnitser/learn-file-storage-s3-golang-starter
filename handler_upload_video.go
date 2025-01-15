@@ -5,9 +5,13 @@ import (
 	"os"
 	"io"
 	"mime"
+	"context"
+	"fmt"
 
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/auth"
 	"github.com/google/uuid"
+
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
 func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request) {
@@ -76,4 +80,41 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 	}
 
 	temp.Seek(0, io.SeekStart)
+
+	key := getAssetPath(mediaType)
+	//fmt.Println(key)
+
+	_, err = cfg.s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: &cfg.s3Bucket,
+		Key: &key,
+		Body: temp,
+		ContentType: &mediaType,
+	})
+	if err != nil{
+		respondWithError(w, http.StatusInternalServerError, "Couldn't put file in bucket", err)
+		return
+	}
+
+	// video, err := cfg.db.GetVideo(videoID)
+	// if err != nil {
+	// 	respondWithError(w, http.StatusInternalServerError, "Couldn't find video", err)
+	// 	return
+	// }
+	// if video.UserID != userID {
+	// 	respondWithError(w, http.StatusUnauthorized, "Not authorized to update this video", nil)
+	// 	return
+	// }
+
+	//url := cfg.getAssetURL(assetPath)
+	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", cfg.s3Bucket, cfg.s3Region, key)
+	video.VideoURL = &url
+	
+	err = cfg.db.UpdateVideo(video)
+	if err != nil {
+		//delete(videoThumbnails, videoID)
+		respondWithError(w, http.StatusBadRequest, "Unable to update video", err)
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, video)
 }
