@@ -79,15 +79,44 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	ratio, err := getVideoAspectRatio(temp.Name())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't get aspect ratio", err)
+		return
+	}
+
+	prefix := "other"
+	if ratio == "16:9"{
+		prefix = "landscape"
+	}else if ratio == "9:16"{
+		prefix = "portrait"
+	}
+
 	temp.Seek(0, io.SeekStart)
 
-	key := getAssetPath(mediaType)
+	output, err := processVideoForFastStart(temp.Name())
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't get fast video", err)
+		return
+	}
+
+	tempFast, err := os.Open(output)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't read fast temp file", err)
+		return
+	}
+	defer os.Remove(tempFast.Name())
+	defer tempFast.Close()
+
+	key := fmt.Sprintf("%s/%s", prefix, getAssetPath(mediaType))
+
 	//fmt.Println(key)
+	//return
 
 	_, err = cfg.s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: &cfg.s3Bucket,
 		Key: &key,
-		Body: temp,
+		Body: tempFast,
 		ContentType: &mediaType,
 	})
 	if err != nil{
@@ -95,15 +124,6 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// video, err := cfg.db.GetVideo(videoID)
-	// if err != nil {
-	// 	respondWithError(w, http.StatusInternalServerError, "Couldn't find video", err)
-	// 	return
-	// }
-	// if video.UserID != userID {
-	// 	respondWithError(w, http.StatusUnauthorized, "Not authorized to update this video", nil)
-	// 	return
-	// }
 
 	//url := cfg.getAssetURL(assetPath)
 	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", cfg.s3Bucket, cfg.s3Region, key)
