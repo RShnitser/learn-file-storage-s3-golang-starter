@@ -7,6 +7,7 @@ import (
 	"mime"
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/auth"
 	"github.com/google/uuid"
@@ -126,10 +127,17 @@ func (cfg *apiConfig) handlerUploadVideo(w http.ResponseWriter, r *http.Request)
 
 
 	//url := cfg.getAssetURL(assetPath)
-	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", cfg.s3Bucket, cfg.s3Region, key)
+	//url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", cfg.s3Bucket, cfg.s3Region, key)
+	url := strings.Join([]string{cfg.s3Bucket, key}, ",")
 	video.VideoURL = &url
+
+	sVid, err := cfg.dbVideoToSignedVideo(video)
+	if err != nil{
+		respondWithError(w, http.StatusInternalServerError, "Couldn't sign video url", err)
+		return
+	}
 	
-	err = cfg.db.UpdateVideo(video)
+	err = cfg.db.UpdateVideo(sVid)
 	if err != nil {
 		//delete(videoThumbnails, videoID)
 		respondWithError(w, http.StatusBadRequest, "Unable to update video", err)
