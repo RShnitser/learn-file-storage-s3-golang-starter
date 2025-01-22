@@ -95,13 +95,14 @@ func (cfg *apiConfig) handlerVideoGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sVid, err := cfg.dbVideoToSignedVideo(video)
-	if err != nil{
-		respondWithError(w, http.StatusInternalServerError, "Couldn't sign video url", err)
-		return
-	}
+	// sVid, err := cfg.dbVideoToSignedVideo(video)
+	// if err != nil{
+	// 	respondWithError(w, http.StatusInternalServerError, "Couldn't sign video url", err)
+	// 	return
+	// }
+	// video.VideoURL = sVid.VideoURL
 
-	respondWithJSON(w, http.StatusOK, sVid)
+	respondWithJSON(w, http.StatusOK, video)
 }
 
 func (cfg *apiConfig) handlerVideosRetrieve(w http.ResponseWriter, r *http.Request) {
@@ -122,14 +123,14 @@ func (cfg *apiConfig) handlerVideosRetrieve(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	for i, video := range videos{
-		sVid, err := cfg.dbVideoToSignedVideo(video)
-		if err != nil{
-			respondWithError(w, http.StatusInternalServerError, "Couldn't sign video url", err)
-			return
-		}
-		videos[i] = sVid
-	}
+	// for i, video := range videos{
+	// 	sVid, err := cfg.dbVideoToSignedVideo(video)
+	// 	if err != nil{
+	// 		respondWithError(w, http.StatusInternalServerError, "Couldn't sign video url", err)
+	// 		return
+	// 	}
+	// 	videos[i].VideoURL = sVid.VideoURL
+	// }
 
 	respondWithJSON(w, http.StatusOK, videos)
 }

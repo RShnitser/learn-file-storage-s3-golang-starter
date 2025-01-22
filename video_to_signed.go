@@ -6,6 +6,7 @@ import(
 	"time"
 
 	"github.com/bootdotdev/learn-file-storage-s3-golang-starter/internal/database"
+	"fmt"
 )
 
 func(cfg *apiConfig) dbVideoToSignedVideo(video database.Video) (database.Video, error){
@@ -16,11 +17,11 @@ func(cfg *apiConfig) dbVideoToSignedVideo(video database.Video) (database.Video,
 	bucket := split[0]
 	key := split[1]
 
-	signedURL, err := generatePresignedURL(cfg.s3Client, bucket, key, time.Hour)
+	signedURL, err := generatePresignedURL(cfg.s3Client, bucket, key, 5 * time.Minute)
 	if err != nil{
 		return database.Video{}, err
 	}
-
+	fmt.Println(signedURL)
 	video.VideoURL = &signedURL
 	return video, nil
 }
